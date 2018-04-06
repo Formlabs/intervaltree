@@ -158,6 +158,18 @@ public:
         assert(is_valid().first);
     }
 
+    Scalar min() const {
+        assert(!empty());
+        if (left) { return left->min(); }
+        return std::min_element(intervals.begin(), intervals.end(),
+                                IntervalStartCmp())->start;
+    }
+    Scalar max() const {
+        assert(!empty());
+        if (right) { return right->max(); }
+        return std::max_element(intervals.begin(), intervals.end(),
+                                IntervalStopCmp())->stop;
+    }
     // Call f on all intervals near the range [start, stop]:
     template <class UnaryFunction>
     void visit_near(const Scalar& start, const Scalar& stop, UnaryFunction f) const {
