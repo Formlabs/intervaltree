@@ -160,28 +160,26 @@ public:
 
     Scalar min() const {
         assert(!empty());
+        auto result = std::numeric_limits<Scalar>::max(); // If all else fails, return max as our min.
+        if (left) { result = left->min(); }
         if (intervals.empty()) {
-            if (left) { return left->min(); }
-            return std::numeric_limits<Scalar>::infinity(); // Empty: Return inf as our min.
+            return result;
         }
-        auto result = std::min_element(intervals.begin(), intervals.end(),
-                                       IntervalStartCmp())->start;
-        if (left) {
-            result = std::min(result, left->min());
-        }
+        assert(std::is_sorted(intervals.begin(), intervals.end(), IntervalStartCmp()));
+        result = std::min(result, intervals.front().start); // These are sorted by start pos.
         return result;
     }
     Scalar max() const {
         assert(!empty());
+        auto result = std::numeric_limits<Scalar>::lowest(); // If all else fails, return lowest as our max.
+        if (right) { result = right->max(); }
         if (intervals.empty()) {
-            if (right) { return right->max(); }
-            return -std::numeric_limits<Scalar>::infinity(); // Empty: Return -inf as our max.
+            return result;
         }
-        auto result = std::max_element(intervals.begin(), intervals.end(),
-                                       IntervalStopCmp())->stop;
-        if (right) {
-            result = std::max(result, right->max());
-        }
+        // Our intervals are sorted by start pos, not end pos, so we have to check them all:
+        result = std::max(result,
+                          std::max_element(intervals.begin(), intervals.end(),
+                                           IntervalStopCmp())->stop);
         return result;
     }
     // Call f on all intervals near the range [start, stop]:
