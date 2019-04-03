@@ -96,12 +96,15 @@ public:
       , right(nullptr)
     {
         --depth;
-        const auto minmaxStop = std::minmax_element(ivals.begin(), ivals.end(), 
-                                                    IntervalStopCmp());
-        const auto minmaxStart = std::minmax_element(ivals.begin(), ivals.end(), 
-                                                     IntervalStartCmp());
-        if (!ivals.empty()) {
-            center = (minmaxStart.first->start + minmaxStop.second->stop) / 2;
+        {   // This scope is because afterward we sort and so these two iterators
+            // will stop meaing what they look say they mean, so we want them to go out of scope.
+            const auto minmaxStop = std::minmax_element(ivals.begin(), ivals.end(),
+                                                        IntervalStopCmp());
+            const auto minmaxStart = std::minmax_element(ivals.begin(), ivals.end(),
+                                                         IntervalStartCmp());
+            if (!ivals.empty()) {
+                center = (minmaxStart.first->start + minmaxStop.second->stop) / 2;
+            }
         }
         if (leftextent == 0 && rightextent == 0) {
             // sort intervals by start
@@ -112,6 +115,7 @@ public:
         if (depth == 0 || (ivals.size() < minbucket && ivals.size() < maxbucket)) {
             std::sort(ivals.begin(), ivals.end(), IntervalStartCmp());
             intervals = std::move(ivals);
+            intervals.shrink_to_fit();
             assert(is_valid().first);
             return;
         } else {
