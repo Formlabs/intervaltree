@@ -160,15 +160,29 @@ public:
 
     Scalar min() const {
         assert(!empty());
-        if (left) { return left->min(); }
-        return std::min_element(intervals.begin(), intervals.end(),
-                                IntervalStartCmp())->start;
+        if (intervals.empty()) {
+            if (left) { return left->min(); }
+            return std::numeric_limits<Scalar>::infinity(); // Empty: Return inf as our min.
+        }
+        auto result = std::min_element(intervals.begin(), intervals.end(),
+                                       IntervalStartCmp())->start;
+        if (left) {
+            result = std::min(result, left->min());
+        }
+        return result;
     }
     Scalar max() const {
         assert(!empty());
-        if (right) { return right->max(); }
-        return std::max_element(intervals.begin(), intervals.end(),
-                                IntervalStopCmp())->stop;
+        if (intervals.empty()) {
+            if (right) { return right->max(); }
+            return -std::numeric_limits<Scalar>::infinity(); // Empty: Return -inf as our max.
+        }
+        auto result = std::max_element(intervals.begin(), intervals.end(),
+                                       IntervalStopCmp())->stop;
+        if (right) {
+            result = std::max(result, right->max());
+        }
+        return result;
     }
     // Call f on all intervals near the range [start, stop]:
     template <class UnaryFunction>
