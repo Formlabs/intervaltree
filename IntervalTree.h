@@ -96,12 +96,15 @@ public:
       , right(nullptr)
     {
         --depth;
-        const auto minmaxStop = std::minmax_element(ivals.begin(), ivals.end(), 
-                                                    IntervalStopCmp());
-        const auto minmaxStart = std::minmax_element(ivals.begin(), ivals.end(), 
-                                                     IntervalStartCmp());
-        if (!ivals.empty()) {
-            center = (minmaxStart.first->start + minmaxStop.second->stop) / 2;
+        {   // This scope is because afterward we sort and so these two iterators
+            // will stop meaing what they look say they mean, so we want them to go out of scope.
+            const auto minmaxStop = std::minmax_element(ivals.begin(), ivals.end(),
+                                                        IntervalStopCmp());
+            const auto minmaxStart = std::minmax_element(ivals.begin(), ivals.end(),
+                                                         IntervalStartCmp());
+            if (!ivals.empty()) {
+                center = (minmaxStart.first->start + minmaxStop.second->stop) / 2;
+            }
         }
         if (leftextent == 0 && rightextent == 0) {
             // sort intervals by start
@@ -112,6 +115,7 @@ public:
         if (depth == 0 || (ivals.size() < minbucket && ivals.size() < maxbucket)) {
             std::sort(ivals.begin(), ivals.end(), IntervalStartCmp());
             intervals = std::move(ivals);
+            intervals.shrink_to_fit();
             assert(is_valid().first);
             return;
         } else {
@@ -160,15 +164,27 @@ public:
 
     Scalar min() const {
         assert(!empty());
-        if (left) { return left->min(); }
-        return std::min_element(intervals.begin(), intervals.end(),
-                                IntervalStartCmp())->start;
+        auto result = std::numeric_limits<Scalar>::max(); // If all else fails, return max as our min.
+        if (left) { result = left->min(); }
+        if (intervals.empty()) {
+            return result;
+        }
+        assert(std::is_sorted(intervals.begin(), intervals.end(), IntervalStartCmp()));
+        result = std::min(result, intervals.front().start); // These are sorted by start pos.
+        return result;
     }
     Scalar max() const {
         assert(!empty());
-        if (right) { return right->max(); }
-        return std::max_element(intervals.begin(), intervals.end(),
-                                IntervalStopCmp())->stop;
+        auto result = std::numeric_limits<Scalar>::lowest(); // If all else fails, return lowest as our max.
+        if (right) { result = right->max(); }
+        if (intervals.empty()) {
+            return result;
+        }
+        // Our intervals are sorted by start pos, not end pos, so we have to check them all:
+        result = std::max(result,
+                          std::max_element(intervals.begin(), intervals.end(),
+                                           IntervalStopCmp())->stop);
+        return result;
     }
     // Call f on all intervals near the range [start, stop]:
     template <class UnaryFunction>

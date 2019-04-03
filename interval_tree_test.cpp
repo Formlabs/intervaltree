@@ -186,3 +186,43 @@ int main(int argc, char**argv) {
 
     return Catch::Session().run( argc, argv );
 }
+
+TEST_CASE( "Test min/max" ) {
+    typedef IntervalTree<int, int> ITree;
+    {
+        ITree::interval_vector sanityIntervals;
+        sanityIntervals.push_back(ITree::interval(-100, 100, 0));
+        sanityIntervals.push_back(ITree::interval(-90, -80, 1));
+        ITree sanityTree(std::move(sanityIntervals), 16, 1, 1);
+        REQUIRE( sanityTree.min() == -100 );
+        REQUIRE( sanityTree.max() ==  100 );
+    }
+
+    {
+        ITree::interval_vector sanityIntervals;
+        sanityIntervals.push_back(ITree::interval(-100, 100, 0));
+        sanityIntervals.push_back(ITree::interval(-90, -80, 1));
+        sanityIntervals.push_back(ITree::interval(-10, 10, 2));
+        ITree sanityTree(std::move(sanityIntervals), 16, 1, 1);
+        REQUIRE( sanityTree.min() == -100 );
+        REQUIRE( sanityTree.max() ==  100 );
+    }
+    {
+        ITree::interval_vector sanityIntervals;
+        sanityIntervals.push_back(ITree::interval(-100, 100, 0));
+        sanityIntervals.push_back(ITree::interval(-90, -80, 1));
+        sanityIntervals.push_back(ITree::interval(-10, 10, 2));
+        ITree sanityTree(std::move(sanityIntervals), 16, 1, 1);
+        REQUIRE( sanityTree.min() == -100 );
+        REQUIRE( sanityTree.max() ==  100 );
+    }
+    {
+        ITree::interval_vector sanityIntervals;
+        sanityIntervals.push_back(ITree::interval(-100, 100, 0));
+        sanityIntervals.push_back(ITree::interval(80, 90, 2));
+        ITree sanityTree(std::move(sanityIntervals), 16, 1, 1);
+        REQUIRE( sanityTree.min() == -100 );
+        REQUIRE( sanityTree.max() ==  100 );
+    }
+
+}
