@@ -274,7 +274,7 @@
 #ifdef CATCH_CONFIG_CPP11_UNIQUE_PTR
 #   define CATCH_AUTO_PTR( T ) std::unique_ptr<T>
 #else
-#   define CATCH_AUTO_PTR( T ) std::auto_ptr<T>
+#   define CATCH_AUTO_PTR( T ) std::unique_ptr<T>
 #endif
 
 namespace Catch {
@@ -3404,7 +3404,7 @@ namespace Catch {
     };
 
     class DebugOutStream : public IStream {
-        std::auto_ptr<StreamBufBase> m_streamBuf;
+        std::unique_ptr<StreamBufBase> m_streamBuf;
         mutable std::ostream m_os;
     public:
         DebugOutStream();
@@ -3552,7 +3552,7 @@ namespace Catch {
         }
         ConfigData m_data;
 
-        std::auto_ptr<IStream const> m_stream;
+        std::unique_ptr<IStream const> m_stream;
         TestSpec m_testSpec;
     };
 
